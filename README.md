@@ -44,6 +44,7 @@ git clone https://github.com/SergioOficial/Celestial-AI.git
 ```
 cd Celestial-AI
 ```
+```
 npm install
 ```
 ```
