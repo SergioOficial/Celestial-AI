@@ -1,6 +1,6 @@
 # Celestial-AI
 
-> **Este proyecto está en constante evolución. Estamos comprometidos en ofrecer a nuestra comunidad un Bot increíble. Te invitamos a instalarlo y para estar al tanto de todas las novedades. [¡Únete a nuestro nuevo canal!](https://whatsapp.com/channel/0029Vb64nWqLo4hb8cuxe23n)**
+> **Este proyecto está en constante evolución. Estamos comprometidos en ofrecer a nuestra comunidad un Bot increíble. Te invitamos a instalarlo y para estar al tanto de todas las novedades. [¡Únete a nuestro nuevo canal!](https://whatsapp.com/channel/0029Vb7dhIi65yDFeMZ2HJ3x)**
 
 <p align="center"> 
   <img src="https://cdn2.sockywa.xyz/b1sSs.jpeg" alt="Celestial IA" style="width: 75%; height: auto; max-width: 150px;">
@@ -117,5 +117,3 @@ Este proyecto se distribuye bajo la licencia ISC. Puedes usar, modificar y distr
 <p align="center"> 
   <i>⭐ Si te gusta el proyecto, no olvides darle una estrella en GitHub. ¡Gracias por usar Celestial IA!</i>
 </p>
-```
-
