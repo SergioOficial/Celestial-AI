@@ -36,14 +36,17 @@
 </details>
 <summary><strong>Render / Koyeb / Railway</strong> — Usando GitHub</summary>
 
+
 ```
-bash
 ```
 git clone https://github.com/SergioOficial/Celestial-AI.git
 ```
+```
 cd Celestial-AI
 ```
+```
 npm install
+```
 ```
 npm start
 ```
@@ -59,15 +62,21 @@ npm start
 bash
 termux-setup-storage
 ```
+```
 apt update && apt upgrade -y
+```
 ```
 pkg install -y git nodejs ffmpeg imagemagick
 ```
+```
 git clone https://github.com/SergioOficial/Celestial-AI.git
+```
 ```
 cd Celestial-AI
 ```
+```
 npm install
+```
 ```
 npm start
 ```
@@ -78,14 +87,16 @@ npm start
 <details>
 <summary><strong>Usar PM2 (gestor de procesos)</strong></summary>
 
-```
-bash
+
 ```
 npm i -g pm2
 ```
+```
 pm2 start index.js --name "celestial"
 ```
+```
 pm2 save
+```
 ```
 pm2 logs
 ```
