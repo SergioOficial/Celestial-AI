@@ -37,13 +37,12 @@
 <summary><strong>Render / Koyeb / Railway</strong> — Usando GitHub</summary>
 
 
-```
+
 ```
 git clone https://github.com/SergioOficial/Celestial-AI.git
 ```
 ```
 cd Celestial-AI
-```
 ```
 npm install
 ```
