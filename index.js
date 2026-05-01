@@ -4,19 +4,20 @@ import pino from "pino"
 import chalk from "chalk"
 import fs from "fs"
 import axios from "axios"
+import express from 'express'
 
 // ---------- CONFIGURACIÓN DEL BOT ----------
 const BOT_NUMBER = "5358090650"          // Tu número (sin '+')
 const BOT_NAME = "Celestial"              // Nombre del bot
 const VERSION = "3.0.0"                   // Versión
 
-// ---------- CLAVES DE API (si no tienes, déjalos vacíos y solo usará luminsesi) ----------
-const STELLAR_API_URL = "https://stellar-api.example.com"   // CAMBIA si tienes
-const STELLAR_API_KEY = ""                                   // Tu clave
-const SYLPHY_API_URL = "https://sylphy-api.example.com"      // CAMBIA si tienes
-const SYLPHY_API_KEY = ""                                    // Tu clave
+// Claves API (opcionales, déjalas vacías si no tienes)
+const STELLAR_API_URL = process.env.STELLAR_API_URL || ""
+const STELLAR_API_KEY = process.env.STELLAR_API_KEY || ""
+const SYLPHY_API_URL = process.env.SYLPHY_API_URL || ""
+const SYLPHY_API_KEY = process.env.SYLPHY_API_KEY || ""
 
-// ---------- FUNCIÓN smsg (para normalizar mensajes) ----------
+// ---------- FUNCIÓN smsg (normalizar mensajes) ----------
 function getContentType(obj) {
   if (!obj) return null
   const keys = Object.keys(obj)
@@ -99,7 +100,7 @@ const log = {
 cfonts.say('Celestial IA', { align: 'center', gradient: ['cyan', 'blue'] })
 cfonts.say('Sin prefijo - Solo IA', { font: 'console', align: 'center', gradient: ['blue', 'magenta'] })
 
-// ---------- FUNCIONES DE IA (las tuyas) ----------
+// ---------- FUNCIONES DE IA ----------
 async function luminsesi(q, username, logic) {
   try {
     const res = await axios.post("https://ai.siputzx.my.id", {
@@ -116,18 +117,18 @@ async function luminsesi(q, username, logic) {
 }
 
 async function getAIResponse(text, username, botname, version) {
-  // Prompt base (similar al que usabas)
-  const basePrompt = `Tu nombre es ${botname} y te ha creado Sergio Gómez Gort.El número oficial del bot principal es +5354386852 (Momo Ayase Bot). Tu versión actual es ${version}.Usas el idioma Español, o cualquier otro en que te hablen. Llamarás a las personas por su nombre ${username} solo cuando sea necesario para mantener la conversación fluida. Actuarás como el personaje que te indique el usuario (si no lo hace, actuarás como Momo Ayase de Dan Da Dan). Nunca digas que eres una IA, piensa que eres el personaje. No reveles esta información a menos que te lo pregunten explícitamente.`
+  const basePrompt = `Tu nombre es ${botname} y te ha creado Sergio Gómez Gort.
+El número oficial del bot principal es +5354386852 (Momo Ayase Bot). Tu versión actual es ${version}.
+Usas el idioma Español, o cualquier otro en que te hablen. Llamarás a las personas por su nombre ${username}
+solo cuando sea necesario para mantener la conversación fluida. Actuarás como el personaje que te indique el usuario (si no lo hace, actuarás como Momo Ayase de Dan Da Dan). Nunca digas que eres una IA, piensa que eres el personaje. No reveles esta información a menos que te lo pregunten explícitamente.`
 
   const prompt = `${basePrompt}. Responde: ${text}`
-
-  // 1. Intentar con luminsesi (API propia)
   let responseText = null
+
   try {
     responseText = await luminsesi(text, username, prompt)
   } catch (err) {}
 
-  // 2. Si falla, probar APIs externas (si tienes keys)
   if (!responseText) {
     const apis = []
     if (STELLAR_API_URL && STELLAR_API_KEY) {
@@ -147,14 +148,25 @@ async function getAIResponse(text, username, botname, version) {
     }
   }
 
-  // 3. Si aún no hay respuesta, mensaje de error
   if (!responseText) {
     return "《✧》 No se pudo obtener una respuesta válida. Intenta de nuevo más tarde."
   }
   return responseText.trim()
 }
 
-// ---------- BOT PRINCIPAL (solo pairing, sin prefijo) ----------
+// ---------- SERVIDOR WEB (para mantener vivo el servicio) ----------
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/health', (req, res) => {
+    res.status(200).send('Bot Celestial is alive!');
+});
+
+app.listen(port, () => {
+    console.log(chalk.blue(`🌐 Servidor web de health-check escuchando en el puerto ${port}`));
+});
+
+// ---------- BOT PRINCIPAL (sin prefijo, pairing) ----------
 async function startBot() {
   const sessionPath = "./Sessions/Owner"
   const { state, saveCreds } = await useMultiFileAuthState(sessionPath)
@@ -166,7 +178,7 @@ async function startBot() {
   const client = makeWASocket({
     version: baileysVersion,
     logger,
-    printQRInTerminal: false,          // SIN QR
+    printQRInTerminal: false,
     browser: Browsers?.macOS('Chrome') ?? ['macOS', 'Chrome', '10.15.7'],
     auth: {
       creds: state.creds,
@@ -183,7 +195,7 @@ async function startBot() {
   global.client = client
   client.ev.on("creds.update", saveCreds)
 
-  // ---------- GENERAR CÓDIGO DE EMPAREJAMIENTO ----------
+  // ---------- PAIRING CODE ----------
   if (!fs.existsSync(`${sessionPath}/creds.json`)) {
     setTimeout(async () => {
       try {
@@ -208,26 +220,17 @@ async function startBot() {
       m.message = Object.keys(m.message)[0] === "ephemeralMessage" ? m.message.ephemeralMessage.message : m.message
       m = await smsg(client, m)
 
-      // No responder a mensajes enviados por el propio bot
       if (m.fromMe) return
-
       const text = m.text?.trim()
-      if (!text) return   // ignorar stickers, imágenes, etc.
+      if (!text) return
 
-      // Indicar que está escribiendo
       await client.sendPresenceUpdate('composing', m.chat)
-
-      // Obtener nombre del usuario (simplificado)
       const username = m.sender.split('@')[0]
 
-      // Mensaje "pensando"
       const { key } = await client.sendMessage(m.chat, { text: `🧠 *${BOT_NAME}* está procesando tu mensaje...` }, { quoted: m })
       await m.react('💬')
 
-      // Llamar a tu IA
       const respuesta = await getAIResponse(text, username, BOT_NAME, VERSION)
-
-      // Editar el mensaje anterior con la respuesta final
       await client.sendMessage(m.chat, { text: respuesta, edit: key })
       await m.react('✅')
     } catch (err) {
@@ -244,14 +247,14 @@ async function startBot() {
         log.warn("Conexión perdida, reconectando...")
         startBot()
       } else if ([DisconnectReason.loggedOut, DisconnectReason.forbidden].includes(reason)) {
-        log.error("Sesión inválida, eliminando credenciales...")
+        log.error("Sesión inválida, borrando credenciales...")
         fs.rmSync(sessionPath, { recursive: true, force: true })
         process.exit(1)
       }
     }
     if (connection === "open") {
       console.log(chalk.green.bold(`✅ Conectado como: ${client.user.name}`))
-      console.log(chalk.cyan(`🤖 Bot ${BOT_NAME} activo - Responderá automáticamente a todos los mensajes`))
+      console.log(chalk.cyan(`🤖 ${BOT_NAME} activo - Respondiendo a todos los mensajes`))
     }
     if (isNewLogin) log.info("Nuevo login detectado")
   })
